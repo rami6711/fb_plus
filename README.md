@@ -45,7 +45,7 @@ draw text
 - c - color
 
 ## font
-Each character is defined by 32 segments. The basis is a standard 16-segment display. An additional 16 segments extend the original possibilities. The last 3 segments are dots. Their diameter is larger than the "bold" font parameter. The remaining segments are formed by the hexagon i4. It is a flattened regular hexagon.
+Each character is defined by 32 segments. Thus, a single character is defined using 32 bits (4 bytes) for any character size. The basis is a standard 16-segment display. An additional 16 segments extend the original possibilities. The last 3 segments are dots. Their diameter is larger than the "bold" font parameter. The remaining segments are formed by the hexagon i4. It is a flattened regular hexagon.
 
 Here is map of segments:
 ![segments map](doc/segments.jpg)
