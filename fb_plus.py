@@ -100,6 +100,14 @@ def adjust(segm, height, width):
     return retVal
     
 class fbplus(FrameBuffer):
+    def __init__(self, *args, **kwargs):
+        super(fbplus, self).__init__(*args, **kwargs)
+        self.height = 10
+        self.width = 8
+        self.bold = 3
+        self.angle = 0
+        self.shift = 2*self.width + self.bold + 2
+
     def hexagonI4(self, x1,y1,x2,y2,b,c):
         # Hexagon drawing function.  Will draw a filled hexagon like segments in 7-seg. displays
         # two points x1, y1 and x2, y2 and the width + color.
