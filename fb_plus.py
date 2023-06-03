@@ -1,4 +1,13 @@
-# FB extension with sizable text font.
+# FrameBuffer extension with sizable text font.
+# Git: https://github.com/rami6711/fb_plus
+# Author: Rastislav Michalek
+# License: MIT License (https://opensource.org/licenses/MIT)
+#
+# "circle" and "fill_circle" are based on Adafruit GFX Arduino 
+# library to MicroPython # by Tony DiCola
+# (https://github.com/adafruit/Adafruit-GFX-Library)
+
+
 from framebuf import FrameBuffer
 from micropython import const
 import math

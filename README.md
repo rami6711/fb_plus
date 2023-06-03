@@ -2,11 +2,14 @@
 FrameBuffer class extension with sizable font with any rotation
 
 ![demo](doc/demo1.jpg)
+- hexagonI4 [test2](doc/test2.jpg)
+- letters [test3](doc/test3.jpg)
+- numbers and special characters [test4](doc/test4.jpg)
 
 ## fb_plus expands FrameBuffer by:
 
 ```
-hexahonI4(x1,y1,x2,y2,bold,c)
+hexagonI4(x1,y1,x2,y2,bold,c)
 ```
 drawing a flattened regular hexagon
 - x1,y1 - start point
@@ -38,7 +41,7 @@ putText32(txt,x,y,c)
 ```
 draw text
 - txt - text string
-- x,y - position of first characters
+- x,y - position of the centre point of the first character
 - c - color
 
 ## font
@@ -47,3 +50,8 @@ Each character is defined by 32 segments. The basis is a standard 16-segment dis
 Here is map of segments:
 ![segments map](doc/segments.jpg)
 
+Green cross - position of the centre point of the character
+
+## TODO:
+- width of hexagonI4 also at even values
+- adjust oblique hexagonI4
