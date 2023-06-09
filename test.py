@@ -33,13 +33,14 @@ white = 1
 # Original FrameBuffer functions
 fb.fill(white)
 fb.text('Hello World',30,0,black)
-fb.text('Original FrameBuffer text',30,10,black)
 fb.pixel(30, 10, black)
 fb.hline(30, 30, 10, black)
 fb.vline(30, 50, 10, black)
 fb.line(30, 70, 40, 80, black)
 fb.rect(30, 90, 10, 10, black)
 fb.fill_rect(30, 110, 10, 10, black)
+fb.text('Original',30,130,black)
+fb.text('FrameBuffer',30,140,black)
 for row in range(0,36):
 	fb.text(str(row),0,row*8,black)
 fb.text('Line 36',0,288,black)
@@ -64,25 +65,39 @@ input("Hexagons I4 (press Enter to continue)")
 
 # Character map 1
 fb.fill(white)
-fb.setText32(10,7,3,90,2)
-fb.putText32('AaBbCcDdEeFfGg:',113,10,black)
-fb.putText32('HhIiJjKkLlMmNn.',80,10,black)
-fb.putText32('OoPpQqRrSsTtUu?',50,10,black)
-fb.putText32('VvWwXxYyZz(){}!',20,10,black)
+fb.setText32(10,7,3,90,3)
+fb.putText32('AaBbCcDdEeFfGg',113,12,black)
+fb.putText32('HhIiJjKkLlMmNn',80,12,black)
+fb.putText32('OoPpQqRrSsTtUu',50,12,black)
+fb.putText32('VvWwXxYyZz[]{}',20,12,black)
 e.set_frame_memory(buf, x, y, w, h)
 e.display_frame()
 input("Character map 1 (press Enter to continue)")
 
 # Character map 2
 fb.fill(white)
-fb.setText32(10,7,3,90,2)
-fb.putText32('01:23,45.67\'89`',113,10,black)
-fb.putText32('~!@#$%^&*_-+=\\|',80,10,black)
-fb.putText32(';:\'\"<>,./?',50,10,black)
-fb.putText32('\u007F\u0080\u0081\u0082\u0083\u0084\u0085\u0086\u0087\u0088',20,10,black)
+fb.setText32(10,7,3,90,3)
+fb.putText32(' !"#$%&\'()*+,-',113,12,black)
+fb.putText32('./0123456789:;',80,12,black)
+fb.putText32('<=>?@\\^_`|~\u007F',50,12,black)
 e.set_frame_memory(buf, x, y, w, h)
 e.display_frame()
 input("Character map 2 (press Enter to continue)")
+
+# Character map 3
+fb.fill(white)
+fb.setText32(10,7,3,90,3)
+xx=(113,80,50,20)
+i=0x80
+for a in range(4):
+    txt=""
+    for _ in range(14):
+        txt+=chr(i)
+        i+=1
+    fb.putText32(txt,xx[a],12,black)
+e.set_frame_memory(buf, x, y, w, h)
+e.display_frame()
+input("Character map 3 (press Enter to continue)")
 
 '''
 fb.fill(white)
