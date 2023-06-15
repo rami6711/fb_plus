@@ -5,6 +5,7 @@ FrameBuffer class extension with sizable font with any rotation
 - hexagonI4 [test2](doc/test2.jpg)
 - letters [test3](doc/test3.jpg)
 - numbers and special characters [test4](doc/test4.jpg)
+- characters outside the basic ASCII [test5](doc/test5.jpg)
 
 ## fb_plus expands FrameBuffer by:
 
