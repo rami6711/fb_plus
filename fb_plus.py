@@ -98,7 +98,7 @@ _CH32SET = const((
 	0x20000000, #  0010 0000 0000 0000 - 0000 0000 0000 0000 .
 	0x00002200, #  0000 0000 0000 0000 - 0010 0010 0000 0000 /
 	0x000022FF, #  0000 0000 0000 0000 - 0010 0010 1111 1111 0
-	0x00081100, #  0000 0000 0000 1000 - 0001 0001 0000 0000 1
+	0x00081130, #  0000 0000 0000 1000 - 0001 0001 0011 0000 1
 	0x00004477, #  0000 0000 0000 0000 - 0100 0100 0111 0111 2
 	0x0000443F, #  0000 0000 0000 0000 - 0100 0100 0011 1111 3
 #	0x0000448C, #  0000 0000 0000 0000 - 0100 0100 1000 1100 4
@@ -127,6 +127,7 @@ _CH32SET = const((
 	0x000040F3, #  0000 0000 0000 0000 - 0100 0000 1111 0011 E
 	0x000040C3, #  0000 0000 0000 0000 - 0100 0000 1100 0011 F
 	0x000004FB, #  0000 0000 0000 0000 - 0000 0100 1111 1011 G
+#	0x0008047A, #  0000 0000 0000 1000 - 0000 0100 0111 1010 G
 	0x000044CC, #  0000 0000 0000 0000 - 0100 0100 1100 1100 H
 	0x00001133, #  0000 0000 0000 0000 - 0001 0001 0011 0011 I
 	0x0000007C, #  0000 0000 0000 0000 - 0000 0000 0111 1100 J
@@ -138,6 +139,7 @@ _CH32SET = const((
 	0x000000FF, #  0000 0000 0000 0000 - 0000 0000 1111 1111 O
 	0x000044C7, #  0000 0000 0000 0000 - 0100 0100 1100 0111 P
 	0x000008FF, #  0000 0000 0000 0000 - 0000 1000 1111 1111 Q
+#	0x000A0866, #  0000 0000 0000 1010 - 0000 1000 0110 0110 Q
 	0x00004CC7, #  0000 0000 0000 0000 - 0100 1100 1100 0111 R
 #	0x000044BB, #  0000 0000 0000 0000 - 0100 0100 1011 1011 S
 	0x000A4422, #  0000 0000 0000 1010 - 0100 0100 0010 0010 S
@@ -247,6 +249,8 @@ class fbplus(FrameBuffer):
     def hexagonI4(self, x1,y1,x2,y2,b,c):
         # Hexagon drawing function.  Will draw a filled hexagon like segments in 7-seg. displays
         # two points x1, y1 and x2, y2 and the width + color.
+        if (b < 1):
+            return
         self.line(x1,y1,x2,y2,c)
         if (b > 1):
             dy=y2-y1
@@ -254,6 +258,12 @@ class fbplus(FrameBuffer):
             dl = math.sqrt(dx*dx + dy*dy)
             dx = dx/dl
             dy = dy/dl
+            if (b%2)==0:
+                x1 += 0.5*dy
+                x2 += 0.5*dy
+                y1 += 0.5*dx
+                y2 += 0.5*dx
+                
             '''
             dl = abs(dx) + abs(dy)
             dl *= dl
@@ -262,15 +272,15 @@ class fbplus(FrameBuffer):
             dy = dy/dl
             '''
             for i in range(1,b):
-                x1a = x1 + round(i*(dx+dy)/2)
-                x2a = x2 - round(i*(dx-dy)/2)
-                y1a = y1 + round(i*(dy-dx)/2)
-                y2a = y2 - round(i*(dy+dx)/2)
-
-                x1b = x1 + round(i*(dx-dy)/2)
-                x2b = x2 - round(i*(dx+dy)/2)
-                y1b = y1 + round(i*(dy+dx)/2)
-                y2b = y2 - round(i*(dy-dx)/2)
+                x1a = round(x1 + i*(dx+dy)/2)
+                x2a = round(x2 - i*(dx-dy)/2)
+                y1a = round(y1 + i*(dy-dx)/2)
+                y2a = round(y2 - i*(dy+dx)/2)
+                
+                x1b = round(x1 + i*(dx-dy)/2)
+                x2b = round(x2 - i*(dx+dy)/2)
+                y1b = round(y1 + i*(dy+dx)/2)
+                y2b = round(y2 - i*(dy-dx)/2)
 
                 self.line(x1a,y1a,x2a,y2a,c)
                 self.line(x1b,y1b,x2b,y2b,c)
