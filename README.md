@@ -1,11 +1,20 @@
-# fb_plus
-FrameBuffer class extension with sizable font with any rotation
+# fb_plus and bmp_rd
+`FrBuffExpansion` class expands the possibilities of `FrameBuffer` class.
+The main reason was the addition of a sizable font with any rotation. Later, an extension to display a picture/icon was added.
+
+There are two types of constructor:
+- `fbplus(<FrameBuffer_params>)` make `FrBuffExpansion` together with `FrameBuffer` class. All parameters are used for creation of `FrameBuffer` class.
+- `fbadd(FrameBuffer_instance)` make `FrBuffExpansion` instance with already defined `FrameBuffer` instance.
+In both cases the new instance has wrapper to original `FrameBuffer` methods. Moreover, it covers the old `fill_rect` method.
+
+In addition, the `BMPReader` class is a decoder for BMP files. It covers 1pbp, 4bpp, 8bpp and 24bpp bitmaps. RGB pixel color can be reduced to 16-bit, 8-bit or 1-bit numbers. There is also an option to use a custom conversion or no downscaling. `FrBuffExpansion` allows you to rotate the image on the display with 90 degree steps.
 
 ![demo](doc/demo1.jpg)
 - hexagonI4 [test2](doc/test2.jpg)
 - letters [test3](doc/test3.jpg)
 - numbers and special characters [test4](doc/test4.jpg)
 - characters outside the basic ASCII [test5](doc/test5.jpg)
+- bitmap display [icons](doc/icons.jpg)
 
 ## fb_plus expands FrameBuffer by:
 

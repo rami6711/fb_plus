@@ -12,6 +12,11 @@ from framebuf import FrameBuffer
 from micropython import const
 import math
 
+ROT_0_DEG = const(0)
+ROT_90_DEG = const(1)
+ROT_180_DEG = const(2)
+ROT_270_DEG = const(3)
+
 
 '''
 32-segment charset lookup table
@@ -217,19 +222,23 @@ _CH32SET = const((
 	0x00005511, #  0000 0000 0000 0000 - 0101 0101 0001 0001 fall edge
     ))
 
-# rotation of point or line around point [0,0]
 def rotation(points, alpha):
-    koef = const(256)
-    s = int(koef * math.sin(math.pi*alpha/180))
-    c = int(koef * math.cos(math.pi*alpha/180))
+    '''
+    Rotation of point or line around point [0,0]
+    '''
+    coef = const(256)
+    s = int(coef * math.sin(math.pi*alpha/180))
+    c = int(coef * math.cos(math.pi*alpha/180))
     retVal = []
     for i in range(0, len(points), 2):
-        retVal.append((c*points[i] - s*points[i+1]) // koef)
-        retVal.append((s*points[i] + c*points[i+1]) // koef)
+        retVal.append((c*points[i] - s*points[i+1]) // coef)
+        retVal.append((s*points[i] + c*points[i+1]) // coef)
     return retVal
 
-# adjust segments by height and width of character
 def adjust(segm, height, width):
+    '''
+    Adjust segments by height and width of character
+    '''
     retVal = []
     retVal.append(width*segm[0]//_SREF)
     retVal.append(height*segm[1]//_SREF)
@@ -237,21 +246,81 @@ def adjust(segm, height, width):
     retVal.append(height*segm[3]//_SREF)
     return retVal
     
-class fbplus(FrameBuffer):
-    def __init__(self, *args, **kwargs):
-        super(fbplus, self).__init__(*args, **kwargs)
+class FrBuffExpansion():
+    '''
+    Expansion of FrameBuffer class methods
+    Use fb defined by child class
+    '''
+    def __init__(self):
         self.height = 10
         self.width = 8
         self.bold = 3
         self.angle = 0
         self.shift = 2*self.width + self.bold + 2
+        self.fb = None
+
+    def get_fb(self):
+        return self.fb
+
+    # wrappers
+    def fill(self, c):
+        self.fb.fill(c)
+
+    def pixel(self, x, y, c=None):
+        if c is None:
+            return self.fb.pixel(x, y)
+        self.fb.pixel(x, y, c)
+
+    def hline(self, x, y, w, c):
+        self.fb.hline(x, y, w, c)
+
+    def vline(self, x, y, h, c):
+        self.fb.vline(x, y, h, c)
+
+    def line(self, x1, y1, x2, y2, c):
+        self.fb.line(x1, y1, x2, y2, c)
+    
+    def rect(self, x, y, w, h, c, f=False):
+        try:
+            self.fb.rect(x, y, w, h, c, f)
+        except:
+            # old FrameBuffer
+            if f:
+                self.fb.fill_rect(x, y, w, h, c)
+            else:
+                self.fb.rect(x, y, w, h, c)
+
+    def fill_rect(self, x, y, w, h, c):
+        try:
+            self.fb.rect(x, y, w, h, c, True)
+        except:
+            # old FrameBuffer
+            self.fb.fill_rect(x, y, w, h, c)
+
+    def ellipse(self, x, y, xr, yr, c, f=False, m=0xF):
+        self.fb.ellipse(x, y, xr, yr, c, f, m)
+
+    def poly(self, x, y, coords, c, f=False):
+        self.fb.poly(x, y, coords, c, f)
+
+    def text(self, s, x, y, c=1):
+        self.fb.text(s, x, y, c)
+
+    def scroll(self, xstep, ystep):
+        self.fb.scroll(xstep, ystep)
+
+    def blit(self, fbuf, x, y, key=-1, palette=None):
+        self.fb.blit(fbuf, x, y, key, palette)
+    # end of wrappers
 
     def hexagonI4(self, x1,y1,x2,y2,b,c):
-        # Hexagon drawing function.  Will draw a filled hexagon like segments in 7-seg. displays
-        # two points x1, y1 and x2, y2 and the width + color.
+        '''
+        Hexagon drawing function. Will draw a filled hexagon like segments in 7-seg. displays
+        two points x1, y1 and x2, y2 and the width + color.
+        '''
         if (b < 1):
             return
-        self.line(x1,y1,x2,y2,c)
+        self.fb.line(x1,y1,x2,y2,c)
         if (b > 1):
             dy=y2-y1
             dx=x2-x1
@@ -282,61 +351,82 @@ class fbplus(FrameBuffer):
                 y1b = round(y1 + i*(dy+dx)/2)
                 y2b = round(y2 - i*(dy-dx)/2)
 
-                self.line(x1a,y1a,x2a,y2a,c)
-                self.line(x1b,y1b,x2b,y2b,c)
+                self.fb.line(x1a,y1a,x2a,y2a,c)
+                self.fb.line(x1b,y1b,x2b,y2b,c)
 
-    def circle(self, x0, y0, r, c):
-        # Circle drawing function.  Will draw a single pixel wide circle with
-        # center at x0, y0 and the specified radius + color.
-        f = 1 - r
-        ddF_x = 1
-        ddF_y = -2 * r
-        x = 0
-        y = r
-        self.pixel(x0, y0 + r, c)
-        self.pixel(x0, y0 - r, c)
-        self.pixel(x0 + r, y0, c)
-        self.pixel(x0 - r, y0, c)
-        while x < y:
-            if f >= 0:
-                y -= 1
-                ddF_y += 2
-                f += ddF_y
-            x += 1
-            ddF_x += 2
-            f += ddF_x
-            self.pixel(x0 + x, y0 + y, c)
-            self.pixel(x0 - x, y0 + y, c)
-            self.pixel(x0 + x, y0 - y, c)
-            self.pixel(x0 - x, y0 - y, c)
-            self.pixel(x0 + y, y0 + x, c)
-            self.pixel(x0 - y, y0 + x, c)
-            self.pixel(x0 + y, y0 - x, c)
-            self.pixel(x0 - y, y0 - x, c)
+    def circle(self, x0, y0, r, c, f=False):
+        '''
+        Circle drawing function. Will draw a single pixel wide or filled circle
+        with center at (x0, y0) and the specified radius (r) + color (c).
+        For filling circle use the flag (f) = True
+        '''
+        try:
+            # try to use FrameBuffer function
+            self.fb.ellipse(x0, y0, r, r, c, f)
+        except:
+            # old FrameBuffer
+            if f:
+                self.fill_circle(x0, y0, r, c)
+                return
+            f = 1 - r
+            ddF_x = 1
+            ddF_y = -2 * r
+            x = 0
+            y = r
+            self.fb.pixel(x0, y0 + r, c)
+            self.fb.pixel(x0, y0 - r, c)
+            self.fb.pixel(x0 + r, y0, c)
+            self.fb.pixel(x0 - r, y0, c)
+            while x < y:
+                if f >= 0:
+                    y -= 1
+                    ddF_y += 2
+                    f += ddF_y
+                x += 1
+                ddF_x += 2
+                f += ddF_x
+                self.fb.pixel(x0 + x, y0 + y, c)
+                self.fb.pixel(x0 - x, y0 + y, c)
+                self.fb.pixel(x0 + x, y0 - y, c)
+                self.fb.pixel(x0 - x, y0 - y, c)
+                self.fb.pixel(x0 + y, y0 + x, c)
+                self.fb.pixel(x0 - y, y0 + x, c)
+                self.fb.pixel(x0 + y, y0 - x, c)
+                self.fb.pixel(x0 - y, y0 - x, c)
             
     def fill_circle(self, x0, y0, r, c):
-        # Filled circle drawing function.  Will draw a filled circle with
-        # center at x0, y0 and the specified radius + color.
-        self.vline(x0, y0 - r, 2*r + 1, c)
-        f = 1 - r
-        ddF_x = 1
-        ddF_y = -2 * r
-        x = 0
-        y = r
-        while x < y:
-            if f >= 0:
-                y -= 1
-                ddF_y += 2
-                f += ddF_y
-            x += 1
-            ddF_x += 2
-            f += ddF_x
-            self.vline(x0 + x, y0 - y, 2*y + 1, c)
-            self.vline(x0 + y, y0 - x, 2*x + 1, c)
-            self.vline(x0 - x, y0 - y, 2*y + 1, c)
-            self.vline(x0 - y, y0 - x, 2*x + 1, c)
+        '''
+        Filled circle drawing function. Will draw a filled circle with
+        center at (x0, y0) and the specified radius (r) + color (c).
+        '''
+        try:
+            # try to use FrameBuffer function
+            self.fb.ellipse(x0, y0, r, r, c, True)
+        except:
+            # old FrameBuffer
+            self.fb.vline(x0, y0 - r, 2*r + 1, c)
+            f = 1 - r
+            ddF_x = 1
+            ddF_y = -2 * r
+            x = 0
+            y = r
+            while x < y:
+                if f >= 0:
+                    y -= 1
+                    ddF_y += 2
+                    f += ddF_y
+                x += 1
+                ddF_x += 2
+                f += ddF_x
+                self.fb.vline(x0 + x, y0 - y, 2*y + 1, c)
+                self.fb.vline(x0 + y, y0 - x, 2*x + 1, c)
+                self.fb.vline(x0 - x, y0 - y, 2*y + 1, c)
+                self.fb.vline(x0 - y, y0 - x, 2*x + 1, c)
 
     def setText32(self, height=None, width=None, bold=None, angle=None, gap=1):
+        '''
+        Control parameter of text including rotation
+        '''
         if height!=None:
             self.height = height
         if width!=None:
@@ -347,7 +437,7 @@ class fbplus(FrameBuffer):
             self.angle = angle
         self.shift = 2*self.width + self.bold + gap
         
-    def putText32(self, txt,x,y,c):
+    def putText32(self, txt: str, x: int, y: int, c):
         line=[0,0,0,0]
         for ch in txt:
             if ((ord(ch)-32) >= len(_CH32SET)) or (ord(ch) < 32):
@@ -368,7 +458,7 @@ class fbplus(FrameBuffer):
                     line = adjust(line, self.height, self.width)
                     line = rotation(line, self.angle)
                     if (i >= 29):
-                        self.fill_circle(x+line[0],y+line[1],2*self.bold//3,c)
+                        self.circle(x+line[0],y+line[1],2*self.bold//3,c,True)
                     else:
                         self.hexagonI4(x+line[0],y+line[1],x+line[2],y+line[3],self.bold,c)
                 code //= 2
@@ -376,4 +466,58 @@ class fbplus(FrameBuffer):
             line = rotation(line, self.angle)
             x += line[0]
             y += line[1]
-    
+
+    def img(self, x0, y0, pixels: list, rotation=0):
+        '''
+        Covert 2D array of pixels[y][x] to FrameBuffer at position (x0,y0)
+        '''
+        if isinstance(pixels[0][0],int):
+            if rotation == ROT_0_DEG:
+                # direct print
+                for y in range(len(pixels)):
+                    for x in range(len(pixels[0])):
+                            self.fb.pixel(x0+x, y0+y, pixels[y][x])
+            elif rotation == ROT_90_DEG:
+                # +90 degree rotation
+                x0 += len(pixels)
+                for y in range(len(pixels)):
+                    for x in range(len(pixels[0])):
+                            self.fb.pixel(x0-y, y0+x, pixels[y][x])
+            elif rotation == ROT_180_DEG:
+                # +180 degree rotation
+                x0 += len(pixels[0])
+                y0 += len(pixels)
+                for y in range(len(pixels)):
+                    for x in range(len(pixels[0])):
+                            self.fb.pixel(x0-x, y0-y, pixels[y][x])
+            elif rotation == ROT_270_DEG:
+                # -90 degree rotation
+                y0 += len(pixels[0])
+                for y in range(len(pixels)):
+                    for x in range(len(pixels[0])):
+                            self.fb.pixel(x0+y, y0-x, pixels[y][x])
+            else:
+                print("Error: Unknown rotation")
+        else:
+            print("Error: Unsupported format of pixels")
+
+
+class fbplus(FrBuffExpansion):
+    def __init__(self, *args, **kwargs):
+        '''
+        Creation of FrBuffExpansion together with FrameBuffer.
+        All parameters are forwarded to FrameBuffer
+        '''
+        super().__init__()
+        self.fb = FrameBuffer(*args, **kwargs)
+
+
+class fbadd(FrBuffExpansion):
+    def __init__(self, framebuf):
+        '''
+        Using FrBuffExpansion with already defined FrameBuffer
+        '''
+        super().__init__()
+        if not isinstance(framebuf, FrameBuffer):
+            raise TypeError("framebuf is not FrameBuffer instance")
+        self.fb = framebuf
