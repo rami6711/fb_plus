@@ -63,5 +63,4 @@ Here is map of segments:
 Green cross - position of the centre point of the character
 
 ## TODO:
-- width of hexagonI4 also at even values
 - adjust oblique hexagonI4
