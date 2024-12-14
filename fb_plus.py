@@ -439,6 +439,9 @@ class FrBuffExpansion():
         
     def putText32(self, txt: str, x: int, y: int, c):
         line=[0,0,0,0]
+        dot = 2*self.bold//3
+        if dot == 0:
+            dot = 1
         for ch in txt:
             if ((ord(ch)-32) >= len(_CH32SET)) or (ord(ch) < 32):
                 # print(ord(ch))
@@ -458,7 +461,7 @@ class FrBuffExpansion():
                     line = adjust(line, self.height, self.width)
                     line = rotation(line, self.angle)
                     if (i >= 29):
-                        self.circle(x+line[0],y+line[1],2*self.bold//3,c,True)
+                        self.circle(x+line[0],y+line[1],dot,c,True)
                     else:
                         self.hexagonI4(x+line[0],y+line[1],x+line[2],y+line[3],self.bold,c)
                 code //= 2
